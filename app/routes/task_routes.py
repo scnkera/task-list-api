@@ -1,22 +1,22 @@
 from flask import Blueprint, abort, make_response
-from ..models.task import tasks
+# from ..models.task import tasks
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
-@tasks_bp.get("")
-def get_all_tasks():
-    results_list = []
+# @tasks_bp.get("")
+# def get_all_tasks():
+#     results_list = []
 
-    for task in tasks:
-        results_list.append(task.to_dict())
+#     for task in tasks:
+#         results_list.append(task.to_dict())
         
-    return results_list
+#     return results_list
 
 
-@tasks_bp.get("/<task_id>")
-def get_one_task(task_id):
-    task = validate_task(task_id)
-    return task.to_dict(), 200
+# @tasks_bp.get("/<task_id>")
+# def get_one_task(task_id):
+#     task = validate_task(task_id)
+#     return task.to_dict(), 200
 
 def validate_task(task_id):
 

@@ -1,9 +1,19 @@
 from flask import Flask
 from .routes.task_routes import tasks_bp
+from .db import db, migrate
+from .models import task
 
 def create_app():
     # __name__ stores the name of the module we're in
     app = Flask(__name__)
+
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://postgres:postgres@localhost:5432/task_list_api_development'
+
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    # Register Blueprints here
     app.register_blueprint(tasks_bp)
 
     return app
