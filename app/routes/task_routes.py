@@ -1,22 +1,30 @@
-from flask import Blueprint, abort, make_response
-# from ..models.task import tasks
+from flask import Blueprint, abort, make_response, request
+from ..db import db
+from app.models.task import Task
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
-# @tasks_bp.get("")
-# def get_all_tasks():
-#     results_list = []
+@tasks_bp.post("")
+def create_cat():
+    request_body = request.get_json()
+    title = request_body["title"]
+    description = request_body["description"]
+    completed_at = request_body["completed_at"]
 
-#     for task in tasks:
-#         results_list.append(task.to_dict())
-        
-#     return results_list
+    new_task = Task(title=title, description=description, completed_at=completed_at)
+    db.session.add(new_task)
+    db.session.commit()
 
+    response = new_task.to_dict()
+    return response, 201
 
-# @tasks_bp.get("/<task_id>")
-# def get_one_task(task_id):
-#     task = validate_task(task_id)
-#     return task.to_dict(), 200
+@tasks_bp.get("")
+def get_all_cats():
+    query = db.select(Task).order_by(Task.id)
+    tasks = db.session.scalars(query)
+
+    tasks_response = [task.to_dict() for task in tasks]
+    return tasks_response
 
 def validate_task(task_id):
 
