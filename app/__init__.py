@@ -1,22 +1,9 @@
 from flask import Flask
-from .db import db, migrate
-from .models import task, goal
-import os
+from .routes.task_routes import tasks_bp
 
-def create_app(config=None):
+def create_app():
+    # __name__ stores the name of the module we're in
     app = Flask(__name__)
-
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
-
-    if config:
-        # Merge `config` into the app's configuration
-        # to override the app's default settings for testing
-        app.config.update(config)
-
-    db.init_app(app)
-    migrate.init_app(app, db)
-
-    # Register Blueprints here
+    app.register_blueprint(tasks_bp)
 
     return app
