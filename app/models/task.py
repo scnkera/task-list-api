@@ -20,3 +20,12 @@ class Task(db.Model):
             description=self.description,
             completed_at=complete_status
         )
+
+    @classmethod
+    def from_dict(cls, task_data):
+        return cls(
+            name=task_data["name"],
+            description=task_data["description"],
+            completed_at=task_data["completed_at"]
+        )
+
