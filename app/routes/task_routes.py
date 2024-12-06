@@ -9,13 +9,15 @@ def create_task():
     request_body = request.get_json()
     title = request_body["title"]
     description = request_body["description"]
-    completed_at = request_body["completed_at"]
+    completed_at = request_body.get("completed_at", None)
 
     new_task = Task(title=title, description=description, completed_at=completed_at)
     db.session.add(new_task)
     db.session.commit()
 
-    response = new_task.to_dict()
+
+    # response = new_task.to_dict()
+    response = {"task": new_task.to_dict()}
     return response, 201
 
 @tasks_bp.get("")
@@ -24,13 +26,15 @@ def get_all_tasks():
     tasks = db.session.scalars(query)
 
     tasks_response = [task.to_dict() for task in tasks]
+    # tasks_response = [{"task": task.to_dict()} for task in tasks]
     return tasks_response
 
 @tasks_bp.get("/<task_id>")
 def get_single_task(task_id):
     task = validate_task(task_id)
 
-    return task.to_dict()
+    
+    return {"task": task.to_dict()}
 
 @tasks_bp.put("/<task_id>")
 def update_task(task_id):
@@ -39,11 +43,10 @@ def update_task(task_id):
     request_body = request.get_json()
     task.title = request_body["title"]
     task.description = request_body["description"]
-    task.completed_at = request_body["completed_at"]
 
     db.session.commit()
 
-    return Response(status=204, mimetype='application/json')
+    return {"task": task.to_dict()}
 
 @tasks_bp.delete("/<task_id>")
 def delete_task(task_id):
@@ -52,7 +55,9 @@ def delete_task(task_id):
     db.session.delete(task)
     db.session.commit()
 
-    return Response(status=204, mimetype='application/json')
+    response = {"details": f"Task {task_id} \"{task.title}\" successfully deleted"}
+
+    return response
 
 def validate_task(task_id):
 

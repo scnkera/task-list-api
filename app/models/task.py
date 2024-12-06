@@ -7,7 +7,7 @@ class Task(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     title: Mapped[str]
     description: Mapped[str]
-    completed_at: Mapped[Optional[datetime]]
+    completed_at:Mapped[datetime] = mapped_column(default=None, nullable=True)
 
     def to_dict(self):
         complete_status=False
@@ -19,13 +19,19 @@ class Task(db.Model):
             id=self.id,
             title=self.title,
             description=self.description,
-            completed_at=complete_status
+            is_complete=complete_status
         )
 
     @classmethod
     def from_dict(cls, task_data):
-        return cls(
-            name=task_data["name"],
+        if "completed_at" in task_data:
+            return cls(
+            title=task_data["title"],
             description=task_data["description"],
             completed_at=task_data["completed_at"]
+            )
+
+        return cls(
+            title=task_data["title"],
+            description=task_data["description"],
         )
