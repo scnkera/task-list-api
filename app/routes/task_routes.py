@@ -6,7 +6,13 @@ tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
 @tasks_bp.post("")
 def create_task():
+
     request_body = request.get_json()
+
+    if "title" not in request_body or "description" not in request_body:
+        return {"details": "Invalid data"}, 400
+
+    # request_body = request.get_json()
     title = request_body["title"]
     description = request_body["description"]
     completed_at = request_body.get("completed_at", None)
@@ -75,3 +81,17 @@ def validate_task(task_id):
         abort(make_response({"message": f"Task id {task_id} not found"}, 404))
 
     return task
+
+# route_utilities.py
+def create_model(cls, model_data):
+    try:
+        new_model = cls.from_dict(model_data)
+        
+    except KeyError as error:
+        response = {"details": "Invalid data"}
+        abort(make_response(response, 400))
+    
+    db.session.add(new_model)
+    db.session.commit()
+
+    return new_model.to_dict(), 201
