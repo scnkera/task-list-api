@@ -1,6 +1,7 @@
 from flask import Blueprint, abort, make_response, request, Response
 from ..db import db
 from app.models.task import Task
+from app.routes.route_utilities import validate_model_id, create_model
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -65,33 +66,19 @@ def delete_task(task_id):
 
     return response
 
-def validate_task(task_id):
+# def validate_task(task_id):
 
-    # checks for valid input
-    try: 
-        task_id = int(task_id)
-    except: 
-        abort(make_response({"message": f"Task id {task_id} not found"}, 400))
+#     # checks for valid input
+#     try: 
+#         task_id = int(task_id)
+#     except: 
+#         abort(make_response({"message": f"Task id {task_id} not found"}, 400))
 
-    # returns task with the corresponding task_id
-    query = db.select(Task).where(Task.id == task_id)
-    task = db.session.scalar(query)
+#     # returns task with the corresponding task_id
+#     query = db.select(Task).where(Task.id == task_id)
+#     task = db.session.scalar(query)
 
-    if not task:
-        abort(make_response({"message": f"Task id {task_id} not found"}, 404))
+#     if not task:
+#         abort(make_response({"message": f"Task id {task_id} not found"}, 404))
 
-    return task
-
-# route_utilities.py
-def create_model(cls, model_data):
-    try:
-        new_model = cls.from_dict(model_data)
-        
-    except KeyError as error:
-        response = {"details": "Invalid data"}
-        abort(make_response(response, 400))
-    
-    db.session.add(new_model)
-    db.session.commit()
-
-    return new_model.to_dict(), 201
+#     return task
