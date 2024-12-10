@@ -2,26 +2,14 @@ from flask import Blueprint, abort, make_response, request, Response
 from ..db import db
 from app.models.task import Task
 # from app.routes.route_utilities import validate_model_id, create_model
+# from app.routes.route_utilities import validate_model_id
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
 @tasks_bp.post("")
 def create_task():
-
     request_body = request.get_json()
-
-    try:
-        new_task = Task.from_dict(request_body)
-        db.session.add(new_task)
-        db.session.commit()
-
-        # response = new_task.to_dict()
-        response = {"task": new_task.to_dict()}
-        return response, 201
-        
-    except KeyError as error:
-        response = {"details": "Invalid data"}
-        abort(make_response(response, 400))
+    return create_model(Task, request_body)
 
 @tasks_bp.get("")
 def get_all_tasks():
@@ -29,7 +17,6 @@ def get_all_tasks():
     tasks = db.session.scalars(query)
 
     tasks_response = [task.to_dict() for task in tasks]
-    # tasks_response = [{"task": task.to_dict()} for task in tasks]
     return tasks_response
 
 @tasks_bp.get("/<task_id>")
@@ -78,7 +65,6 @@ def validate_model(cls, model_id):
 
     return model
 
-
 def create_model(cls, model_data):
     try:
         new_model = cls.from_dict(model_data)
@@ -90,4 +76,4 @@ def create_model(cls, model_data):
     db.session.add(new_model)
     db.session.commit()
 
-    return new_model.to_dict(), 201
+    return {"task": new_model.to_dict()}, 201
