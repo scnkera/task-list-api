@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, make_response, request, Response
 from ..db import db
 from app.models.task import Task
-from app.routes.route_utilities import validate_model_id, create_model
+# from app.routes.route_utilities import validate_model_id, create_model
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -13,12 +13,8 @@ def create_task():
     if "title" not in request_body or "description" not in request_body:
         return {"details": "Invalid data"}, 400
 
-    # request_body = request.get_json()
-    title = request_body["title"]
-    description = request_body["description"]
-    completed_at = request_body.get("completed_at", None)
+    new_task = Task.from_dict(request_body)
 
-    new_task = Task(title=title, description=description, completed_at=completed_at)
     db.session.add(new_task)
     db.session.commit()
 
@@ -38,14 +34,13 @@ def get_all_tasks():
 
 @tasks_bp.get("/<task_id>")
 def get_single_task(task_id):
-    task = validate_task(task_id)
+    task = validate_model(Task, task_id)
 
-    
     return {"task": task.to_dict()}
 
 @tasks_bp.put("/<task_id>")
 def update_task(task_id):
-    task = validate_task(task_id)
+    task = validate_model(Task, task_id)
 
     request_body = request.get_json()
     task.title = request_body["title"]
@@ -57,7 +52,7 @@ def update_task(task_id):
 
 @tasks_bp.delete("/<task_id>")
 def delete_task(task_id):
-    task = validate_task(task_id)
+    task = validate_model(Task, task_id)
 
     db.session.delete(task)
     db.session.commit()
@@ -66,19 +61,33 @@ def delete_task(task_id):
 
     return response
 
-# def validate_task(task_id):
+def validate_model(cls, model_id):
 
-#     # checks for valid input
-#     try: 
-#         task_id = int(task_id)
-#     except: 
-#         abort(make_response({"message": f"Task id {task_id} not found"}, 400))
+    # checks for valid input
+    try: 
+        model_id = int(model_id)
+    except: 
+        abort(make_response({"message": f"Task id {model_id} not found"}, 400))
 
-#     # returns task with the corresponding task_id
-#     query = db.select(Task).where(Task.id == task_id)
-#     task = db.session.scalar(query)
+    # returns task with the corresponding task_id
+    query = db.select(cls).where(cls.id == model_id)
+    model = db.session.scalar(query)
 
-#     if not task:
-#         abort(make_response({"message": f"Task id {task_id} not found"}, 404))
+    if not model:
+        abort(make_response({"message": f"Task id {model_id} not found"}, 404))
 
-#     return task
+    return model
+
+
+def create_model(cls, model_data):
+    try:
+        new_model = cls.from_dict(model_data)
+        
+    except KeyError as error:
+        response = {"details": "Invalid data"}
+        abort(make_response(response, 400))
+    
+    db.session.add(new_model)
+    db.session.commit()
+
+    return new_model.to_dict(), 201
