@@ -10,18 +10,18 @@ def create_task():
 
     request_body = request.get_json()
 
-    if "title" not in request_body or "description" not in request_body:
-        return {"details": "Invalid data"}, 400
+    try:
+        new_task = Task.from_dict(request_body)
+        db.session.add(new_task)
+        db.session.commit()
 
-    new_task = Task.from_dict(request_body)
-
-    db.session.add(new_task)
-    db.session.commit()
-
-
-    # response = new_task.to_dict()
-    response = {"task": new_task.to_dict()}
-    return response, 201
+        # response = new_task.to_dict()
+        response = {"task": new_task.to_dict()}
+        return response, 201
+        
+    except KeyError as error:
+        response = {"details": "Invalid data"}
+        abort(make_response(response, 400))
 
 @tasks_bp.get("")
 def get_all_tasks():
