@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, make_response, request, Response
 from ..db import db
 from app.models.task import Task
-# from app.routes.route_utilities import validate_model_id, create_model
+from .route_utilities import validate_model, create_model, get_models_with_filters
 # from app.routes.route_utilities import validate_model_id
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
@@ -9,15 +9,13 @@ tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 @tasks_bp.post("")
 def create_task():
     request_body = request.get_json()
+
     return create_model(Task, request_body)
 
 @tasks_bp.get("")
 def get_all_tasks():
-    query = db.select(Task).order_by(Task.id)
-    tasks = db.session.scalars(query)
 
-    tasks_response = [task.to_dict() for task in tasks]
-    return tasks_response
+    return get_models_with_filters(Task, request.args)
 
 @tasks_bp.get("/<task_id>")
 def get_single_task(task_id):
@@ -48,32 +46,10 @@ def delete_task(task_id):
 
     return response
 
-def validate_model(cls, model_id):
+@tasks_bp.path("/<task_id>/mark_complete")
+def mark_task_complete(task_id):
+    pass
 
-    # checks for valid input
-    try: 
-        model_id = int(model_id)
-    except: 
-        abort(make_response({"message": f"Task id {model_id} not found"}, 400))
-
-    # returns task with the corresponding task_id
-    query = db.select(cls).where(cls.id == model_id)
-    model = db.session.scalar(query)
-
-    if not model:
-        abort(make_response({"message": f"Task id {model_id} not found"}, 404))
-
-    return model
-
-def create_model(cls, model_data):
-    try:
-        new_model = cls.from_dict(model_data)
-        
-    except KeyError as error:
-        response = {"details": "Invalid data"}
-        abort(make_response(response, 400))
-    
-    db.session.add(new_model)
-    db.session.commit()
-
-    return {"task": new_model.to_dict()}, 201
+@tasks_bp.path("/<task_id>/mark_incomplete")
+def mark_task_incomplete(task_id):
+    pass
