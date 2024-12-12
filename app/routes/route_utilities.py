@@ -10,14 +10,15 @@ def validate_model(cls, model_id):
     try: 
         model_id = int(model_id)
     except: 
-        abort(make_response({"message": f"Task id {model_id} not found"}, 400))
+        abort(make_response({"msg": f"{cls.__name__} id {model_id} is invalid"}, 400))
+
 
     # returns task with the corresponding task_id
     query = db.select(cls).where(cls.id == model_id)
     model = db.session.scalar(query)
 
     if not model:
-        abort(make_response({"message": f"Task id {model_id} not found"}, 404))
+        abort(make_response({"msg": f"{cls.__name__} {model_id} not found."}, 404))
 
     return model
 
