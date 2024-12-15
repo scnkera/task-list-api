@@ -3,7 +3,8 @@ from ..db import db
 from app.models.task import Task
 from .route_utilities import validate_model, create_model, get_models_with_filters
 import datetime
-# from app.routes.route_utilities import validate_model_id
+import requests
+import os
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -51,9 +52,22 @@ def delete_task(task_id):
 def mark_task_complete(task_id):
     task = validate_model(Task, task_id)
     task.completed_at = datetime.datetime.now()
+
     db.session.commit()
 
-    return {"task": task.to_dict()}
+    # Slack bot API call
+    url = "https://slack.com/api/chat.postMessage"
+    API_KEY = os.environ.get("SLACK_BOT_OAUTH")
+    header = {"Authorization": f"Bearer {API_KEY}"}
+    request_body = {
+        "channel": "task-notifications",
+        "text": f"Someone just completed the task {task.title}!"
+    }
+
+    slack_post = requests.post(url, headers=header, params=request_body)
+
+    if slack_post:
+        return {"task": task.to_dict()}
 
 @tasks_bp.patch("/<task_id>/mark_incomplete")
 def mark_task_incomplete(task_id):
@@ -62,3 +76,13 @@ def mark_task_incomplete(task_id):
     db.session.commit()
 
     return {"task": task.to_dict()}
+
+
+def implement_slack_api(task):
+    url = "https://slack.com/api/chat.postMessage"
+    API_KEY = os.environ.get("SLACK_BOT_OAUTH")
+    header = {"Authorization": f"Bearer {API_KEY}"}
+    request_body = {
+        "channel": "task-notifications",
+        "text": f"{task.title} completed!",
+    }
