@@ -9,21 +9,22 @@ class Task(db.Model):
     title: Mapped[str]
     description: Mapped[str]
     completed_at:Mapped[datetime] = mapped_column(default=None, nullable=True)
-    goal_id:Mapped[Optional[str]]=mapped_column(ForeignKey("goal.id"))
-    goal: Mapped["Goal"] = relationship(back_populates="tasks")
+    goal_id: Mapped[Optional[int]]=mapped_column(ForeignKey("goal.id"))
+    goal: Mapped[Optional["Goal"]] = relationship(back_populates="tasks")
 
     def to_dict(self):
-        complete_status=False
 
-        if self.completed_at:
-            complete_status = True
-
-        return dict(
+        task_dict = dict(
             id=self.id,
             title=self.title,
             description=self.description,
-            is_complete=complete_status
+            is_complete= True if self.completed_at else False
         )
+
+        if self.goal_id:
+            task_dict["goal_id"] = self.goal_id
+
+        return task_dict
 
     @classmethod
     def from_dict(cls, task_data):
